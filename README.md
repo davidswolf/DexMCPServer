@@ -52,7 +52,7 @@ Add to your Claude Desktop config file (`claude_desktop_config.json`):
       "args": ["/path/to/DexMCPServer/dist/index.js"],
       "env": {
         "DEX_API_KEY": "your_api_key_here",
-        "DEX_API_BASE_URL": "https://api.getdex.com"
+        "DEX_API_BASE_URL": "https://api.getdex.com/api/rest"
       }
     }
   }
