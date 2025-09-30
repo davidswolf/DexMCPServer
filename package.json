@@ -1,0 +1,35 @@
+{
+  "name": "dexmcpserver",
+  "version": "1.0.0",
+  "description": "MCP server for Dex personal CRM",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "test": "tsc -p tsconfig.test.json && node dist-test/test/test-runner.js",
+    "test:watch": "nodemon --watch src --watch test --ext ts --exec \"npm test\"",
+    "prepare": "npm run build"
+  },
+  "bin": {
+    "dex-mcp-server": "./dist/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "dex",
+    "crm"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.18.2",
+    "axios": "^1.12.2",
+    "fuse.js": "^7.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.2"
+  }
+}

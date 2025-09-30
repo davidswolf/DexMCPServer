@@ -1,0 +1,29 @@
+{
+  "search_contacts_by_exact_email": [
+    {
+      "id": "contact-001",
+      "first_name": "Alice",
+      "last_name": "Johnson",
+      "job_title": "Software Engineer",
+      "description": "Senior engineer at Tech Corp",
+      "emails": [
+        { "email": "alice@example.com" }
+      ],
+      "phones": [
+        { "phone_number": "5551234567", "label": "mobile" }
+      ],
+      "linkedin": "alice-johnson-123",
+      "facebook": null,
+      "twitter": "alicejohnson",
+      "instagram": null,
+      "telegram": null,
+      "website": "https://alice.dev",
+      "image_url": "https://example.com/avatar1.jpg",
+      "birthday": "1990-05-15",
+      "last_seen_at": "2025-09-25T10:00:00+00:00",
+      "next_reminder_at": null,
+      "created_at": "2024-01-15T08:30:00+00:00",
+      "updated_at": "2025-09-25T10:00:00+00:00"
+    }
+  ]
+}

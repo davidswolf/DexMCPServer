@@ -1,0 +1,44 @@
+{
+  "timeline_items": [
+    {
+      "id": "note-001",
+      "note": "<p>Had a great conversation about the new project. Alice is excited to contribute to the frontend work.</p>",
+      "event_time": "2025-09-25T10:00:00+00:00",
+      "contacts": [
+        {
+          "contact_id": "contact-001"
+        }
+      ]
+    },
+    {
+      "id": "note-002",
+      "note": "<p>Met Bob for coffee. Discussed product roadmap and potential collaboration opportunities.</p><p>Follow up next month.</p>",
+      "event_time": "2025-09-28T14:30:00+00:00",
+      "contacts": [
+        {
+          "contact_id": "contact-002"
+        }
+      ]
+    },
+    {
+      "id": "note-003",
+      "note": "<p>Carol shared her design portfolio. Very impressive work on mobile UX.</p>",
+      "event_time": "2025-08-15T16:45:00+00:00",
+      "contacts": [
+        {
+          "contact_id": "contact-003"
+        }
+      ]
+    },
+    {
+      "id": "note-004",
+      "note": "<p>David mentioned he's hiring for senior engineer roles. Will send referrals.</p>",
+      "event_time": "2025-09-20T11:00:00+00:00",
+      "contacts": [
+        {
+          "contact_id": "contact-004"
+        }
+      ]
+    }
+  ]
+}

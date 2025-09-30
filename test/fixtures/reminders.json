@@ -1,0 +1,72 @@
+{
+  "reminders": [
+    {
+      "id": "reminder-001",
+      "body": "Check in with Alice about the project progress",
+      "is_complete": false,
+      "due_at_time": null,
+      "due_at_date": "2025-10-05",
+      "contact_ids": [
+        {
+          "contact_id": "contact-001"
+        }
+      ]
+    },
+    {
+      "id": "reminder-002",
+      "body": "Follow up on product roadmap discussion",
+      "is_complete": false,
+      "due_at_time": null,
+      "due_at_date": "2025-10-15",
+      "contact_ids": [
+        {
+          "contact_id": "contact-002"
+        }
+      ]
+    },
+    {
+      "id": "reminder-003",
+      "body": "Review Carol's design mockups",
+      "is_complete": true,
+      "due_at_time": null,
+      "due_at_date": "2025-09-15",
+      "contact_ids": [
+        {
+          "contact_id": "contact-003"
+        }
+      ]
+    },
+    {
+      "id": "reminder-004",
+      "body": "Send senior engineer referrals to David",
+      "is_complete": false,
+      "due_at_time": null,
+      "due_at_date": "2025-10-01",
+      "contact_ids": [
+        {
+          "contact_id": "contact-004"
+        }
+      ]
+    },
+    {
+      "id": "reminder-005",
+      "body": "Schedule quarterly catch-up",
+      "is_complete": false,
+      "due_at_time": "14:00:00",
+      "due_at_date": "2025-10-10",
+      "contact_ids": [
+        {
+          "contact_id": "contact-001"
+        },
+        {
+          "contact_id": "contact-002"
+        }
+      ]
+    }
+  ],
+  "total": {
+    "aggregate": {
+      "count": 5
+    }
+  }
+}
