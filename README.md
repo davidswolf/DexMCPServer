@@ -30,7 +30,7 @@ An MCP (Model Context Protocol) server for [Dex](https://getdex.com), a personal
 3. Create a `.env` file with your Dex API credentials:
    ```env
    DEX_API_KEY=your_api_key_here
-   DEX_API_BASE_URL=https://api.getdex.com
+   DEX_API_BASE_URL=https://api.getdex.com/api/rest
    ```
 
 4. Build the project:
