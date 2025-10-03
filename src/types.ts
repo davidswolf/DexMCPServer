@@ -18,7 +18,8 @@ export interface DexContact {
   next_reminder_at?: string | null;
   created_at?: string;
   updated_at?: string;
-  [key: string]: any; // For other custom fields
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any; // For other custom fields from API
 }
 
 export interface DexNote {

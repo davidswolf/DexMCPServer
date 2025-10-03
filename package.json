@@ -8,9 +8,21 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
-    "test": "tsc -p tsconfig.test.json && node dist-test/test/test-runner.js",
-    "test:watch": "nodemon --watch src --watch test --ext ts --exec \"npm test\"",
-    "prepare": "npm run build"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ci": "vitest run --coverage --reporter=verbose",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "audit": "npm audit --audit-level=moderate",
+    "audit:fix": "npm audit fix",
+    "security": "snyk test",
+    "security:monitor": "snyk monitor",
+    "check": "npm run lint && npm run format:check && npm run build && npm run test:coverage",
+    "check:fix": "npm run lint:fix && npm run format && npm run build && npm run test:coverage",
+    "prepare": "husky"
   },
   "bin": {
     "dex-mcp-server": "./dist/index.js"
@@ -28,8 +40,21 @@
     "fuse.js": "^7.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.37.0",
     "@types/node": "^24.6.0",
+    "@typescript-eslint/eslint-plugin": "^8.45.0",
+    "@typescript-eslint/parser": "^8.45.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.37.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-security": "^3.0.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.3",
+    "prettier": "^3.6.2",
+    "snyk": "^1.1299.1",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.45.0",
+    "vitest": "^3.2.4"
   }
 }

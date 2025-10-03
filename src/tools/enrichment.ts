@@ -13,7 +13,7 @@ export class ContactEnrichmentTools {
    */
   async enrichContact(params: {
     contact_id: string;
-    updates?: Record<string, any>;
+    updates?: Record<string, unknown>;
     email?: string;
     phone?: string;
     social_profiles?: string[];
@@ -21,6 +21,7 @@ export class ContactEnrichmentTools {
     title?: string;
     notes?: string;
     tags?: string[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
   }): Promise<DexContact> {
     const { contact_id, updates: nestedUpdates, ...directUpdates } = params;
@@ -32,41 +33,47 @@ export class ContactEnrichmentTools {
     const currentContact = await this.client.getContact(contact_id);
 
     // Merge updates intelligently
-    const mergedUpdates: Partial<DexContact> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mergedUpdates: Partial<DexContact> & Record<string, any> = {};
 
     // For arrays (like social_profiles, tags), merge instead of replace
-    if (updates.social_profiles && currentContact.social_profiles) {
-      mergedUpdates.social_profiles = [
-        ...currentContact.social_profiles,
-        ...updates.social_profiles
-      ].filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
-    } else if (updates.social_profiles) {
-      mergedUpdates.social_profiles = updates.social_profiles;
+    if (Array.isArray(updates.social_profiles) && Array.isArray(currentContact.social_profiles)) {
+      const currentProfiles = currentContact.social_profiles as string[];
+      const newProfiles = updates.social_profiles as string[];
+      mergedUpdates.social_profiles = [...currentProfiles, ...newProfiles].filter(
+        (v, i, a) => a.indexOf(v) === i
+      ); // Remove duplicates
+    } else if (Array.isArray(updates.social_profiles)) {
+      mergedUpdates.social_profiles = updates.social_profiles as string[];
     }
 
-    if (updates.tags && currentContact.tags) {
-      mergedUpdates.tags = [
-        ...currentContact.tags,
-        ...updates.tags
-      ].filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
-    } else if (updates.tags) {
-      mergedUpdates.tags = updates.tags;
+    if (Array.isArray(updates.tags) && Array.isArray(currentContact.tags)) {
+      const currentTags = currentContact.tags as string[];
+      const newTags = updates.tags as string[];
+      mergedUpdates.tags = [...currentTags, ...newTags].filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
+    } else if (Array.isArray(updates.tags)) {
+      mergedUpdates.tags = updates.tags as string[];
     }
 
     // For simple fields, update if provided
-    const simpleFields = ['email', 'phone', 'company', 'title', 'notes'];
+    const simpleFields = ['email', 'phone', 'company', 'title', 'notes'] as const;
     for (const field of simpleFields) {
+      // eslint-disable-next-line security/detect-object-injection
       if (updates[field] !== undefined) {
-        mergedUpdates[field as keyof DexContact] = updates[field];
+        // eslint-disable-next-line security/detect-object-injection
+        mergedUpdates[field] = updates[field] as string;
       }
     }
 
     // Include any other custom fields
     for (const [key, value] of Object.entries(updates)) {
-      if (!simpleFields.includes(key) &&
-          key !== 'social_profiles' &&
-          key !== 'tags' &&
-          value !== undefined) {
+      if (
+        !simpleFields.includes(key as (typeof simpleFields)[number]) &&
+        key !== 'social_profiles' &&
+        key !== 'tags' &&
+        value !== undefined
+      ) {
+        // eslint-disable-next-line security/detect-object-injection, @typescript-eslint/no-unsafe-assignment
         mergedUpdates[key] = value;
       }
     }
@@ -110,7 +117,7 @@ export class ContactEnrichmentTools {
       body: params.note,
       due_at_date: params.reminder_date,
       is_complete: false,
-      contact_ids: [{ contact_id: params.contact_id }]
+      contact_ids: [{ contact_id: params.contact_id }],
     };
 
     const reminder = await this.client.createReminder(reminderData);

@@ -1,19 +1,17 @@
 #!/usr/bin/env node
 
 // Suppress all console output to prevent interfering with MCP protocol
-const originalConsole = { ...console };
-console.log = () => {};
-console.info = () => {};
-console.warn = () => {};
-console.debug = () => {};
+/* eslint-disable no-console */
+console.log = (): void => {};
+console.info = (): void => {};
+console.warn = (): void => {};
+console.debug = (): void => {};
+/* eslint-enable no-console */
 // Keep console.error for actual errors, but it goes to stderr
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 
 import { getConfig } from './config.js';
 import { DexClient } from './dex-client.js';
@@ -56,13 +54,14 @@ try {
 }
 
 // List available tools
-server.setRequestHandler(ListToolsRequestSchema, async () => {
+server.setRequestHandler(ListToolsRequestSchema, () => {
   return {
     tools: [
       // Full-Text Search Tool
       {
         name: 'search_contacts_full_text',
-        description: 'Search across all contact data including names, descriptions, notes, and reminders using fuzzy matching. Returns ranked results with match context showing where the query was found.',
+        description:
+          'Search across all contact data including names, descriptions, notes, and reminders using fuzzy matching. Returns ranked results with match context showing where the query was found.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -82,7 +81,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: 'array',
               items: {
                 type: 'string',
-                enum: ['contact', 'note', 'reminder']
+                enum: ['contact', 'note', 'reminder'],
               },
               description: 'Limit search to specific document types (default: all)',
             },
@@ -94,13 +93,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       // Contact Discovery Tools
       {
         name: 'find_contact',
-        description: 'Find contacts using smart matching with fuzzy name search or exact matches on email/phone/social URLs. Returns top matches with confidence scores.',
+        description:
+          'Find contacts using smart matching with fuzzy name search or exact matches on email/phone/social URLs. Returns top matches with confidence scores.',
         inputSchema: {
           type: 'object',
           properties: {
             name: {
               type: 'string',
-              description: 'Name to search (supports fuzzy matching for typos, nicknames, different orderings)',
+              description:
+                'Name to search (supports fuzzy matching for typos, nicknames, different orderings)',
             },
             email: {
               type: 'string',
@@ -139,7 +140,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       // Relationship History Tools
       {
         name: 'get_contact_history',
-        description: 'Get the complete relationship timeline for a contact, including all notes and reminders in chronological order',
+        description:
+          'Get the complete relationship timeline for a contact, including all notes and reminders in chronological order',
         inputSchema: {
           type: 'object',
           properties: {
@@ -219,7 +221,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       // Contact Enrichment Tools
       {
         name: 'enrich_contact',
-        description: 'Add or update information for an existing contact. Intelligently merges new data without overwriting existing information.',
+        description:
+          'Add or update information for an existing contact. Intelligently merges new data without overwriting existing information.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -263,7 +266,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'add_contact_note',
-        description: 'Create a new note for a contact to track interactions and important information',
+        description:
+          'Create a new note for a contact to track interactions and important information',
         inputSchema: {
           type: 'object',
           properties: {
@@ -347,24 +351,28 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           content: [
             {
               type: 'text',
-              text: JSON.stringify({
-                query,
-                result_count: results.length,
-                results: results.map(r => ({
-                  contact: {
-                    id: r.contact.id,
-                    name: `${r.contact.first_name} ${r.contact.last_name}`.trim(),
-                    job_title: r.contact.job_title,
-                    email: r.contact.emails?.[0]?.email,
-                  },
-                  confidence: r.confidence,
-                  matches: r.matchContext.map(mc => ({
-                    found_in: mc.documentType,
-                    field: mc.field,
-                    excerpt: mc.snippet,
-                  }))
-                }))
-              }, null, 2),
+              text: JSON.stringify(
+                {
+                  query,
+                  result_count: results.length,
+                  results: results.map((r) => ({
+                    contact: {
+                      id: r.contact.id,
+                      name: `${r.contact.first_name} ${r.contact.last_name}`.trim(),
+                      job_title: r.contact.job_title,
+                      email: r.contact.emails?.[0]?.email,
+                    },
+                    confidence: r.confidence,
+                    matches: r.matchContext.map((mc) => ({
+                      found_in: mc.documentType,
+                      field: mc.field,
+                      excerpt: mc.snippet,
+                    })),
+                  })),
+                },
+                null,
+                2
+              ),
             },
           ],
         };
@@ -372,7 +380,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       // Discovery Tools
       case 'find_contact': {
-        const matches = await discoveryTools.findContact(args as any);
+        const findContactArgs = args as {
+          name?: string;
+          email?: string;
+          phone?: string;
+          social_url?: string;
+          company?: string;
+        };
+        const matches = await discoveryTools.findContact(findContactArgs);
         return {
           content: [
             {
@@ -397,7 +412,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       // History Tools
       case 'get_contact_history': {
-        const history = await historyTools.getContactHistory(args as any);
+        const historyArgs = args as {
+          contact_id: string;
+          include_notes?: boolean;
+          include_reminders?: boolean;
+          date_from?: string;
+          date_to?: string;
+        };
+        const history = await historyTools.getContactHistory(historyArgs);
         return {
           content: [
             {
@@ -409,7 +431,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'get_contact_notes': {
-        const notes = await historyTools.getContactNotes(args as any);
+        const notesArgs = args as {
+          contact_id: string;
+          limit?: number;
+          date_from?: string;
+        };
+        const notes = await historyTools.getContactNotes(notesArgs);
         return {
           content: [
             {
@@ -421,7 +448,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'get_contact_reminders': {
-        const reminders = await historyTools.getContactReminders(args as any);
+        const remindersArgs = args as {
+          contact_id: string;
+          status?: 'active' | 'completed' | 'all';
+          date_from?: string;
+        };
+        const reminders = await historyTools.getContactReminders(remindersArgs);
         return {
           content: [
             {
@@ -434,7 +466,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       // Enrichment Tools
       case 'enrich_contact': {
-        const updatedContact = await enrichmentTools.enrichContact(args as any);
+        const enrichArgs = args as {
+          contact_id: string;
+          updates?: Record<string, unknown>;
+          email?: string;
+          phone?: string;
+          social_profiles?: string[];
+          company?: string;
+          title?: string;
+          notes?: string;
+          tags?: string[];
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          [key: string]: any;
+        };
+        const updatedContact = await enrichmentTools.enrichContact(enrichArgs);
         // Invalidate discovery cache after update
         discoveryTools.invalidateCache();
         return {
@@ -448,7 +493,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'add_contact_note': {
-        const note = await enrichmentTools.addContactNote(args as any);
+        const noteArgs = args as {
+          contact_id: string;
+          content: string;
+          date?: string;
+          tags?: string[];
+        };
+        const note = await enrichmentTools.addContactNote(noteArgs);
         return {
           content: [
             {
@@ -460,7 +511,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'create_contact_reminder': {
-        const reminder = await enrichmentTools.createContactReminder(args as any);
+        const reminderArgs = args as {
+          contact_id: string;
+          reminder_date: string;
+          note: string;
+          reminder_type?: string;
+        };
+        const reminder = await enrichmentTools.createContactReminder(reminderArgs);
         return {
           content: [
             {
@@ -489,7 +546,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 // Start server
-async function main() {
+async function main(): Promise<void> {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   // Don't log to console in stdio mode - it interferes with MCP protocol
