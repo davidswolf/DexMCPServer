@@ -32,6 +32,9 @@ loadEnv();
 export function getConfig(): DexConfig {
   const apiKey = process.env.DEX_API_KEY;
   const baseUrl = process.env.DEX_API_BASE_URL || 'https://api.getdex.com/api/rest';
+  const searchCacheTTLMinutes = process.env.DEX_SEARCH_CACHE_TTL_MINUTES
+    ? parseInt(process.env.DEX_SEARCH_CACHE_TTL_MINUTES, 10)
+    : 30;
 
   if (!apiKey) {
     throw new Error('DEX_API_KEY environment variable is required');
@@ -40,5 +43,6 @@ export function getConfig(): DexConfig {
   return {
     apiKey,
     baseUrl,
+    searchCacheTTLMinutes,
   };
 }
