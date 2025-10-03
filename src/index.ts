@@ -20,6 +20,7 @@ import { DexClient } from './dex-client.js';
 import { ContactDiscoveryTools } from './tools/discovery.js';
 import { RelationshipHistoryTools } from './tools/history.js';
 import { ContactEnrichmentTools } from './tools/enrichment.js';
+import { FullTextSearchIndex } from './search/full-text-index.js';
 
 // Initialize server
 const server = new Server(
@@ -40,6 +41,7 @@ let client: DexClient;
 let discoveryTools: ContactDiscoveryTools;
 let historyTools: RelationshipHistoryTools;
 let enrichmentTools: ContactEnrichmentTools;
+let searchIndex: FullTextSearchIndex;
 
 try {
   config = getConfig();
@@ -47,6 +49,7 @@ try {
   discoveryTools = new ContactDiscoveryTools(client);
   historyTools = new RelationshipHistoryTools(client);
   enrichmentTools = new ContactEnrichmentTools(client);
+  searchIndex = new FullTextSearchIndex(config.searchCacheTTLMinutes);
 } catch (error) {
   console.error('Failed to initialize Dex MCP Server:', error);
   process.exit(1);
@@ -56,6 +59,38 @@ try {
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
+      // Full-Text Search Tool
+      {
+        name: 'search_contacts_full_text',
+        description: 'Search across all contact data including names, descriptions, notes, and reminders using fuzzy matching. Returns ranked results with match context showing where the query was found.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            query: {
+              type: 'string',
+              description: 'Search query to match against contact data, notes, and reminders',
+            },
+            max_results: {
+              type: 'number',
+              description: 'Maximum number of results to return (default: 10)',
+            },
+            min_confidence: {
+              type: 'number',
+              description: 'Minimum confidence score 0-100 (default: 50)',
+            },
+            include_types: {
+              type: 'array',
+              items: {
+                type: 'string',
+                enum: ['contact', 'note', 'reminder']
+              },
+              description: 'Limit search to specific document types (default: all)',
+            },
+          },
+          required: ['query'],
+        },
+      },
+
       // Contact Discovery Tools
       {
         name: 'find_contact',
@@ -293,6 +328,48 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
 
     switch (name) {
+      // Full-Text Search
+      case 'search_contacts_full_text': {
+        const { query, max_results, min_confidence, include_types } = args;
+
+        // Refresh index if needed
+        await searchIndex.refreshIndex(client);
+
+        // Perform search
+        const results = searchIndex.search(query as string, {
+          maxResults: max_results as number | undefined,
+          minConfidence: min_confidence as number | undefined,
+          documentTypes: include_types as Array<'contact' | 'note' | 'reminder'> | undefined,
+        });
+
+        // Format response
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({
+                query,
+                result_count: results.length,
+                results: results.map(r => ({
+                  contact: {
+                    id: r.contact.id,
+                    name: `${r.contact.first_name} ${r.contact.last_name}`.trim(),
+                    job_title: r.contact.job_title,
+                    email: r.contact.emails?.[0]?.email,
+                  },
+                  confidence: r.confidence,
+                  matches: r.matchContext.map(mc => ({
+                    found_in: mc.documentType,
+                    field: mc.field,
+                    excerpt: mc.snippet,
+                  }))
+                }))
+              }, null, 2),
+            },
+          ],
+        };
+      }
+
       // Discovery Tools
       case 'find_contact': {
         const matches = await discoveryTools.findContact(args as any);

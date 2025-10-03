@@ -59,4 +59,5 @@ export interface TimelineItem {
 export interface DexConfig {
   apiKey: string;
   baseUrl: string;
+  searchCacheTTLMinutes?: number;
 }
