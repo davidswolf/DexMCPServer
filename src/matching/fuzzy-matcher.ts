@@ -107,7 +107,7 @@ export class ContactMatcher {
         contact.facebook,
         contact.twitter,
         contact.instagram,
-        contact.telegram
+        contact.telegram,
       ].filter(Boolean);
 
       for (const socialUrl of socialUrls) {
@@ -127,17 +127,17 @@ export class ContactMatcher {
 
   private findByName(name: string, company?: string): ContactMatch[] {
     // Create searchable contacts with full_name field for better matching
-    const searchableContacts = this.contacts.map(contact => ({
+    const searchableContacts = this.contacts.map((contact) => ({
       ...contact,
-      full_name: `${contact.first_name} ${contact.last_name}`.trim()
+      full_name: `${contact.first_name} ${contact.last_name}`.trim(),
     }));
 
     // Use Fuse.js for fuzzy name matching on full_name, first_name, and last_name
     const fuse = new Fuse(searchableContacts, {
       keys: [
-        { name: 'full_name', weight: 2 },  // Prioritize full name matches
+        { name: 'full_name', weight: 2 }, // Prioritize full name matches
         { name: 'first_name', weight: 1 },
-        { name: 'last_name', weight: 1 }
+        { name: 'last_name', weight: 1 },
       ],
       threshold: 0.4, // 0 = perfect match, 1 = match anything
       includeScore: true,
@@ -186,7 +186,7 @@ export class ContactMatcher {
     const words1 = new Set(str1.split(/\s+/));
     const words2 = new Set(str2.split(/\s+/));
 
-    const intersection = new Set([...words1].filter(x => words2.has(x)));
+    const intersection = new Set([...words1].filter((x) => words2.has(x)));
     const union = new Set([...words1, ...words2]);
 
     return intersection.size / union.size;
@@ -211,13 +211,13 @@ export class ContactMatcher {
   private normalizeUrl(url: string): string {
     // For LinkedIn URLs, extract just the username
     // Example: https://www.linkedin.com/in/melissa-jacobs-32530b182/ -> melissa-jacobs-32530b182
-    const linkedinMatch = url.match(/linkedin\.com\/in\/([^\/\?]+)/i);
+    const linkedinMatch = url.match(/linkedin\.com\/in\/([^/?]+)/i);
     if (linkedinMatch) {
       return linkedinMatch[1].toLowerCase().trim();
     }
 
     // For other social media, try to extract username from common patterns
-    const socialMatch = url.match(/(?:facebook|twitter|instagram|telegram)\.com\/([^\/\?]+)/i);
+    const socialMatch = url.match(/(?:facebook|twitter|instagram|telegram)\.com\/([^/?]+)/i);
     if (socialMatch) {
       return socialMatch[1].toLowerCase().trim();
     }
@@ -229,7 +229,12 @@ export class ContactMatcher {
     } catch {
       // If not a valid URL, just normalize the string (could be just a username)
       // Remove @ prefix for Twitter/Instagram handles
-      return url.toLowerCase().trim().replace(/\/$/, '').replace(/^https?:\/\//, '').replace(/^@/, '');
+      return url
+        .toLowerCase()
+        .trim()
+        .replace(/\/$/, '')
+        .replace(/^https?:\/\//, '')
+        .replace(/^@/, '');
     }
   }
 

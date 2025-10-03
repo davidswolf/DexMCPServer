@@ -1,5 +1,8 @@
 # Dex MCP Server
 
+[![Quality Checks](https://github.com/davidswolf/DexMCPServer/actions/workflows/quality-checks.yml/badge.svg)](https://github.com/davidswolf/DexMCPServer/actions/workflows/quality-checks.yml)
+[![codecov](https://codecov.io/gh/davidswolf/DexMCPServer/branch/main/graph/badge.svg)](https://codecov.io/gh/davidswolf/DexMCPServer)
+
 An MCP (Model Context Protocol) server for [Dex](https://getdex.com), a personal CRM system. This server enables AI assistants to intelligently find contacts, access relationship history, and enrich contact information.
 
 ## Features
@@ -112,22 +115,59 @@ Build for production:
 npm run build
 ```
 
+### Code Quality Commands
+
+Run all quality checks:
+```bash
+npm run check
+```
+
+Auto-fix issues:
+```bash
+npm run check:fix
+```
+
+Individual commands:
+```bash
+npm run lint          # Run ESLint
+npm run lint:fix      # Auto-fix lint issues
+npm run format        # Format code with Prettier
+npm run format:check  # Check formatting
+npm run test          # Run tests
+npm run test:coverage # Run tests with coverage
+npm run audit         # Security audit
+npm run security      # Snyk security scan
+```
+
+### Pre-commit Hooks
+
+The project uses Husky to run lint-staged before commits, ensuring code quality. This automatically:
+- Lints and fixes TypeScript files
+- Formats code with Prettier
+- Prevents commits with quality issues
+
 ## Testing
 
-Test the server outputs valid JSON:
+Run the test suite:
 ```bash
-node test-server.js
+npm test
 ```
 
-Test server tools:
+Watch mode for development:
 ```bash
-node test-tools.js
+npm run test:watch
 ```
 
-These test scripts validate that:
-- The server starts without stdout pollution
-- All JSON-RPC messages are properly formatted
-- Tools are correctly registered and callable
+Generate coverage report:
+```bash
+npm run test:coverage
+```
+
+Coverage thresholds:
+- Lines: 80%
+- Functions: 80%
+- Branches: 75%
+- Statements: 80%
 
 ## Architecture
 

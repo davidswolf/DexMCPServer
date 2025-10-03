@@ -1,4 +1,4 @@
-import Fuse from 'fuse.js';
+import Fuse, { FuseResultMatch } from 'fuse.js';
 import { DexClient } from '../dex-client.js';
 import { DexContact, DexNote, DexReminder } from '../types.js';
 
@@ -40,7 +40,7 @@ export class FullTextSearchIndex {
     const now = Date.now();
 
     // Check cache TTL
-    if (this.lastRefresh && (now - this.lastRefresh) < this.cacheTTL) {
+    if (this.lastRefresh && now - this.lastRefresh < this.cacheTTL) {
       return;
     }
 
@@ -48,20 +48,20 @@ export class FullTextSearchIndex {
 
     // 1. Load all contacts
     const contacts = await this.loadAllContacts(client);
-    contacts.forEach(contact => {
+    contacts.forEach((contact) => {
       this.contactsMap.set(contact.id, contact);
       documents.push(...this.extractContactDocuments(contact));
     });
 
     // 2. Load all notes (no contact filter)
     const notes = await client.getNotes();
-    notes.forEach(note => {
+    notes.forEach((note) => {
       documents.push(...this.extractNoteDocuments(note));
     });
 
     // 3. Load all reminders (no contact filter)
     const reminders = await client.getReminders();
-    reminders.forEach(reminder => {
+    reminders.forEach((reminder) => {
       documents.push(...this.extractReminderDocuments(reminder));
     });
 
@@ -100,7 +100,7 @@ export class FullTextSearchIndex {
         documentType: 'contact',
         documentId: contact.id,
         searchableText: `${contact.first_name} ${contact.last_name}`.trim(),
-        metadata: { field: 'name' }
+        metadata: { field: 'name' },
       });
     }
 
@@ -111,7 +111,7 @@ export class FullTextSearchIndex {
         documentType: 'contact',
         documentId: contact.id,
         searchableText: contact.job_title,
-        metadata: { field: 'job_title' }
+        metadata: { field: 'job_title' },
       });
     }
 
@@ -122,29 +122,29 @@ export class FullTextSearchIndex {
         documentType: 'contact',
         documentId: contact.id,
         searchableText: contact.description,
-        metadata: { field: 'description' }
+        metadata: { field: 'description' },
       });
     }
 
     // Emails
-    contact.emails?.forEach(emailObj => {
+    contact.emails?.forEach((emailObj) => {
       docs.push({
         contactId: contact.id,
         documentType: 'contact',
         documentId: contact.id,
         searchableText: emailObj.email,
-        metadata: { field: 'email' }
+        metadata: { field: 'email' },
       });
     });
 
     // Phone numbers
-    contact.phones?.forEach(phoneObj => {
+    contact.phones?.forEach((phoneObj) => {
       docs.push({
         contactId: contact.id,
         documentType: 'contact',
         documentId: contact.id,
         searchableText: `${phoneObj.phone_number} ${phoneObj.label || ''}`.trim(),
-        metadata: { field: 'phone' }
+        metadata: { field: 'phone' },
       });
     });
 
@@ -154,30 +154,30 @@ export class FullTextSearchIndex {
   private extractNoteDocuments(note: DexNote): SearchableDocument[] {
     const plainText = this.stripHtml(note.note);
 
-    return note.contacts.map(c => ({
+    return note.contacts.map((c) => ({
       contactId: c.contact_id,
       documentType: 'note' as const,
       documentId: note.id,
       searchableText: plainText,
       metadata: {
         date: note.event_time,
-        rawContent: note.note
-      }
+        rawContent: note.note,
+      },
     }));
   }
 
   private extractReminderDocuments(reminder: DexReminder): SearchableDocument[] {
     const status = reminder.is_complete ? 'completed' : 'pending';
 
-    return reminder.contact_ids.map(c => ({
+    return reminder.contact_ids.map((c) => ({
       contactId: c.contact_id,
       documentType: 'reminder' as const,
       documentId: reminder.id,
       searchableText: `${reminder.body} ${status}`,
       metadata: {
         date: reminder.due_at_date,
-        rawContent: reminder.body
-      }
+        rawContent: reminder.body,
+      },
     }));
   }
 
@@ -193,9 +193,7 @@ export class FullTextSearchIndex {
 
   private initializeFuse(): void {
     this.fuse = new Fuse(this.documents, {
-      keys: [
-        { name: 'searchableText', weight: 1 }
-      ],
+      keys: [{ name: 'searchableText', weight: 1 }],
       threshold: 0.4,
       includeScore: true,
       includeMatches: true,
@@ -204,11 +202,14 @@ export class FullTextSearchIndex {
     });
   }
 
-  search(query: string, options?: {
-    maxResults?: number;
-    minConfidence?: number;
-    documentTypes?: Array<'contact' | 'note' | 'reminder'>;
-  }): SearchResult[] {
+  search(
+    query: string,
+    options?: {
+      maxResults?: number;
+      minConfidence?: number;
+      documentTypes?: Array<'contact' | 'note' | 'reminder'>;
+    }
+  ): SearchResult[] {
     const maxResults = options?.maxResults || 10;
     const minConfidence = options?.minConfidence || 50;
     const documentTypes = options?.documentTypes;
@@ -217,16 +218,19 @@ export class FullTextSearchIndex {
     const fuseResults = this.fuse.search(query);
 
     // Group results by contact
-    const contactMatches = new Map<string, {
-      contact: DexContact;
-      matches: Array<{
-        documentType: 'contact' | 'note' | 'reminder';
-        field: string;
-        snippet: string;
-        fullContent?: string;
-        score: number;
-      }>;
-    }>();
+    const contactMatches = new Map<
+      string,
+      {
+        contact: DexContact;
+        matches: Array<{
+          documentType: 'contact' | 'note' | 'reminder';
+          field: string;
+          snippet: string;
+          fullContent?: string;
+          score: number;
+        }>;
+      }
+    >();
 
     for (const result of fuseResults) {
       const doc = result.item;
@@ -258,25 +262,25 @@ export class FullTextSearchIndex {
         field: doc.metadata.field || doc.documentType,
         snippet,
         fullContent: doc.metadata.rawContent,
-        score: confidence
+        score: confidence,
       });
     }
 
     // Convert to SearchResult array and rank
-    const results: SearchResult[] = Array.from(contactMatches.values()).map(cm => {
+    const results: SearchResult[] = Array.from(contactMatches.values()).map((cm) => {
       // Aggregate confidence: highest match confidence + bonus for multiple matches
-      const highestConfidence = Math.max(...cm.matches.map(m => m.score));
+      const highestConfidence = Math.max(...cm.matches.map((m) => m.score));
       const multiMatchBonus = Math.min(cm.matches.length * 2, 10);
 
       return {
         contact: cm.contact,
         confidence: Math.min(100, highestConfidence + multiMatchBonus),
-        matchContext: cm.matches.map(m => ({
+        matchContext: cm.matches.map((m) => ({
           documentType: m.documentType,
           field: m.field,
           snippet: m.snippet,
-          fullContent: m.fullContent
-        }))
+          fullContent: m.fullContent,
+        })),
       };
     });
 
@@ -285,14 +289,18 @@ export class FullTextSearchIndex {
     return results.slice(0, maxResults);
   }
 
-  private extractSnippet(text: string, matches?: readonly any[]): string {
+  private extractSnippet(text: string, matches?: readonly FuseResultMatch[]): string {
     if (!matches || matches.length === 0) {
       return text.substring(0, 150) + (text.length > 150 ? '...' : '');
     }
 
     const match = matches[0];
-    const indices = match.indices[0];
-    const [start, end] = indices;
+    const matchIndices = match.indices;
+    if (!matchIndices || matchIndices.length === 0) {
+      return text.substring(0, 150) + (text.length > 150 ? '...' : '');
+    }
+
+    const [start, end] = matchIndices[0];
 
     // Extract context around match
     const contextRadius = 60;
@@ -323,10 +331,8 @@ export class FullTextSearchIndex {
     // Rough estimation
     const avgDocSize = 200; // bytes
     const avgContactSize = 1000; // bytes
-    const estimatedSizeMB = (
-      (documentCount * avgDocSize + contactCount * avgContactSize) /
-      (1024 * 1024)
-    );
+    const estimatedSizeMB =
+      (documentCount * avgDocSize + contactCount * avgContactSize) / (1024 * 1024);
 
     return { documentCount, contactCount, estimatedSizeMB };
   }

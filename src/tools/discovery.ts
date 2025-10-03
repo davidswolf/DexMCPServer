@@ -21,7 +21,7 @@ export class ContactDiscoveryTools {
     const now = Date.now();
 
     // Return cached contacts if still valid
-    if (this.contactsCache && (now - this.cacheTimestamp) < this.CACHE_TTL) {
+    if (this.contactsCache && now - this.cacheTimestamp < this.CACHE_TTL) {
       return this.contactsCache;
     }
 
@@ -61,7 +61,9 @@ export class ContactDiscoveryTools {
   }): Promise<ContactMatch[]> {
     // Validate that at least one parameter is provided
     if (!params.name && !params.email && !params.phone && !params.social_url) {
-      throw new Error('At least one search parameter (name, email, phone, or social_url) is required');
+      throw new Error(
+        'At least one search parameter (name, email, phone, or social_url) is required'
+      );
     }
 
     // If email is provided, try the search endpoint first for faster results
@@ -69,13 +71,13 @@ export class ContactDiscoveryTools {
       try {
         const searchResults = await this.client.searchContactByEmail(params.email);
         if (searchResults && searchResults.length > 0) {
-          return searchResults.map(contact => ({
+          return searchResults.map((contact) => ({
             contact,
             confidence: 100,
-            match_reason: 'Exact email match via search API'
+            match_reason: 'Exact email match via search API',
           }));
         }
-      } catch (error) {
+      } catch {
         // If search fails, fall back to loading all contacts
         console.error('Email search failed, falling back to full contact list');
       }

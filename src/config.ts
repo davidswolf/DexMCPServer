@@ -4,7 +4,7 @@ import { dirname, join } from 'path';
 import { DexConfig } from './types.js';
 
 // Load .env file manually to avoid dotenv's stdout pollution
-function loadEnv() {
+function loadEnv(): void {
   try {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
@@ -21,7 +21,7 @@ function loadEnv() {
         }
       }
     }
-  } catch (error) {
+  } catch {
     // .env file not found, will use environment variables directly
   }
 }

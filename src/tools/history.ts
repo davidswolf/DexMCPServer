@@ -78,7 +78,7 @@ export class RelationshipHistoryTools {
     // Filter by date if specified
     let filtered = notes;
     if (params.date_from) {
-      filtered = notes.filter(note => note.event_time >= params.date_from!);
+      filtered = notes.filter((note) => note.event_time >= params.date_from!);
     }
 
     // Sort by date (most recent first)
@@ -106,12 +106,12 @@ export class RelationshipHistoryTools {
     let filtered = reminders;
     if (params.status && params.status !== 'all') {
       const isComplete = params.status === 'completed';
-      filtered = reminders.filter(reminder => reminder.is_complete === isComplete);
+      filtered = reminders.filter((reminder) => reminder.is_complete === isComplete);
     }
 
     // Filter by date if specified
     if (params.date_from) {
-      filtered = filtered.filter(reminder => reminder.due_at_date >= params.date_from!);
+      filtered = filtered.filter((reminder) => reminder.due_at_date >= params.date_from!);
     }
 
     // Sort by reminder date (most recent first)
