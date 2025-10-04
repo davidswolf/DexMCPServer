@@ -19,12 +19,13 @@ import { ContactDiscoveryTools } from './tools/discovery.js';
 import { RelationshipHistoryTools } from './tools/history.js';
 import { ContactEnrichmentTools } from './tools/enrichment.js';
 import { FullTextSearchIndex } from './search/full-text-index.js';
+import pkg from '../package.json';
 
 // Initialize server
 const server = new Server(
   {
     name: 'dex-mcp-server',
-    version: '1.0.0',
+    version: pkg.version,
   },
   {
     capabilities: {
