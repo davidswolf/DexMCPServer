@@ -15,8 +15,8 @@ describe('Contact Discovery Integration Tests', () => {
       baseURL: 'https://mock.api.test/api/rest',
       headers: {
         'x-hasura-dex-api-key': 'mock-api-key',
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     });
 
     // @ts-ignore - Inject mock client
@@ -30,7 +30,7 @@ describe('Contact Discovery Integration Tests', () => {
   describe('findContact - Name Search', () => {
     it('should find contact by exact full name', async () => {
       const results = await discoveryTools.findContact({
-        name: 'Alice Johnson'
+        name: 'Alice Johnson',
       });
 
       assert.equal(results.length, 1);
@@ -42,30 +42,30 @@ describe('Contact Discovery Integration Tests', () => {
 
     it('should find contact by first name only', async () => {
       const results = await discoveryTools.findContact({
-        name: 'Bob'
+        name: 'Bob',
       });
 
       assert.ok(results.length > 0);
-      const bob = results.find(r => r.contact.first_name === 'Bob');
+      const bob = results.find((r) => r.contact.first_name === 'Bob');
       assert.ok(bob);
       assert.equal(bob.contact.last_name, 'Smith');
     });
 
     it('should find contact with fuzzy matching', async () => {
       const results = await discoveryTools.findContact({
-        name: 'Allice Jonson' // Typos
+        name: 'Allice Jonson', // Typos
       });
 
       assert.ok(results.length > 0);
-      const alice = results.find(r => r.contact.first_name === 'Alice');
+      const alice = results.find((r) => r.contact.first_name === 'Alice');
       assert.ok(alice);
       assert.ok(alice.confidence < 100); // Not exact match
-      assert.ok(alice.confidence > 50);  // But close enough
+      assert.ok(alice.confidence > 50); // But close enough
     });
 
     it('should return empty array for non-existent contact', async () => {
       const results = await discoveryTools.findContact({
-        name: 'NonExistent Person'
+        name: 'NonExistent Person',
       });
 
       assert.equal(results.length, 0);
@@ -74,11 +74,11 @@ describe('Contact Discovery Integration Tests', () => {
     it('should include company in search when provided', async () => {
       const results = await discoveryTools.findContact({
         name: 'David Chen',
-        company: 'BigTech'
+        company: 'BigTech',
       });
 
       assert.ok(results.length > 0);
-      const david = results.find(r => r.contact.first_name === 'David');
+      const david = results.find((r) => r.contact.first_name === 'David');
       assert.ok(david);
       assert.ok(david.contact.description?.includes('BigTech'));
     });
@@ -87,7 +87,7 @@ describe('Contact Discovery Integration Tests', () => {
   describe('findContact - Email Search', () => {
     it('should find contact by exact email', async () => {
       const results = await discoveryTools.findContact({
-        email: 'alice@example.com'
+        email: 'alice@example.com',
       });
 
       assert.equal(results.length, 1);
@@ -98,7 +98,7 @@ describe('Contact Discovery Integration Tests', () => {
 
     it('should handle email not found', async () => {
       const results = await discoveryTools.findContact({
-        email: 'nonexistent@example.com'
+        email: 'nonexistent@example.com',
       });
 
       assert.equal(results.length, 0);
@@ -106,7 +106,7 @@ describe('Contact Discovery Integration Tests', () => {
 
     it('should find contact with secondary email', async () => {
       const results = await discoveryTools.findContact({
-        email: 'bsmith@personal.com'
+        email: 'bsmith@personal.com',
       });
 
       assert.equal(results.length, 1);
@@ -117,7 +117,7 @@ describe('Contact Discovery Integration Tests', () => {
   describe('findContact - Phone Search', () => {
     it('should find contact by exact phone number', async () => {
       const results = await discoveryTools.findContact({
-        phone: '5551234567'
+        phone: '5551234567',
       });
 
       assert.equal(results.length, 1);
@@ -128,7 +128,7 @@ describe('Contact Discovery Integration Tests', () => {
 
     it('should normalize phone numbers for matching', async () => {
       const results = await discoveryTools.findContact({
-        phone: '555-123-4567' // Formatted
+        phone: '555-123-4567', // Formatted
       });
 
       assert.equal(results.length, 1);
@@ -137,7 +137,7 @@ describe('Contact Discovery Integration Tests', () => {
 
     it('should handle phone not found', async () => {
       const results = await discoveryTools.findContact({
-        phone: '9999999999'
+        phone: '9999999999',
       });
 
       assert.equal(results.length, 0);
@@ -147,7 +147,7 @@ describe('Contact Discovery Integration Tests', () => {
   describe('findContact - Social Media Search', () => {
     it('should find contact by LinkedIn username', async () => {
       const results = await discoveryTools.findContact({
-        social_url: 'alice-johnson-123'
+        social_url: 'alice-johnson-123',
       });
 
       assert.equal(results.length, 1);
@@ -158,7 +158,7 @@ describe('Contact Discovery Integration Tests', () => {
 
     it('should find contact by full LinkedIn URL', async () => {
       const results = await discoveryTools.findContact({
-        social_url: 'https://www.linkedin.com/in/bob-smith-456/'
+        social_url: 'https://www.linkedin.com/in/bob-smith-456/',
       });
 
       assert.equal(results.length, 1);
@@ -167,7 +167,7 @@ describe('Contact Discovery Integration Tests', () => {
 
     it('should find contact by Twitter handle', async () => {
       const results = await discoveryTools.findContact({
-        social_url: '@alicejohnson'
+        social_url: '@alicejohnson',
       });
 
       assert.equal(results.length, 1);
@@ -176,7 +176,7 @@ describe('Contact Discovery Integration Tests', () => {
 
     it('should find contact by Instagram username', async () => {
       const results = await discoveryTools.findContact({
-        social_url: 'caroldesigns'
+        social_url: 'caroldesigns',
       });
 
       assert.equal(results.length, 1);
@@ -185,7 +185,7 @@ describe('Contact Discovery Integration Tests', () => {
 
     it('should handle social profile not found', async () => {
       const results = await discoveryTools.findContact({
-        social_url: 'nonexistent-profile'
+        social_url: 'nonexistent-profile',
       });
 
       assert.equal(results.length, 0);
@@ -196,7 +196,7 @@ describe('Contact Discovery Integration Tests', () => {
     it('should prioritize email over name when both provided', async () => {
       const results = await discoveryTools.findContact({
         name: 'Wrong Name',
-        email: 'alice@example.com'
+        email: 'alice@example.com',
       });
 
       assert.equal(results.length, 1);
@@ -207,11 +207,11 @@ describe('Contact Discovery Integration Tests', () => {
     it('should fall back to name search if email not found', async () => {
       const results = await discoveryTools.findContact({
         name: 'Alice Johnson',
-        email: 'wrong@example.com'
+        email: 'wrong@example.com',
       });
 
       assert.ok(results.length > 0);
-      const alice = results.find(r => r.contact.first_name === 'Alice');
+      const alice = results.find((r) => r.contact.first_name === 'Alice');
       assert.ok(alice);
     });
   });
@@ -241,17 +241,66 @@ describe('Contact Discovery Integration Tests', () => {
     it('should cache contacts for 5 minutes', async () => {
       // First call - loads from API
       const results1 = await discoveryTools.findContact({
-        name: 'Alice Johnson'
+        name: 'Alice Johnson',
       });
 
       // Second call - should use cache
       const results2 = await discoveryTools.findContact({
-        name: 'Bob Smith'
+        name: 'Bob Smith',
       });
 
       // Both should succeed without additional API calls
       assert.ok(results1.length > 0);
       assert.ok(results2.length > 0);
+    });
+
+    it('should invalidate cache when requested', async () => {
+      // First call - loads from API
+      await discoveryTools.findContact({ name: 'Alice Johnson' });
+
+      // Invalidate cache
+      discoveryTools.invalidateCache();
+
+      // Next call should reload from API
+      const results = await discoveryTools.findContact({ name: 'Bob Smith' });
+      assert.ok(results.length > 0);
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle email search failure gracefully', async () => {
+      // Create a client that throws on searchContactByEmail
+      const mockClient = new MockAxiosClient({
+        baseURL: 'https://mock.api.test/api/rest',
+        headers: {
+          'x-hasura-dex-api-key': 'mock-api-key',
+          'Content-Type': 'application/json',
+        },
+      });
+
+      // Override searchContactByEmail to throw
+      const originalSearchContactByEmail = mockClient.get.bind(mockClient);
+      mockClient.get = async (url: string, config?: any) => {
+        if (url === '/search/contacts') {
+          throw new Error('Search API failed');
+        }
+        return originalSearchContactByEmail(url, config);
+      };
+
+      // @ts-ignore - Inject mock client
+      const failingClient = new DexClient({ apiKey: 'mock-key', baseUrl: 'mock-url' });
+      // @ts-ignore - Replace internal client with mock
+      failingClient['client'] = mockClient;
+
+      const failingDiscoveryTools = new ContactDiscoveryTools(failingClient);
+
+      // Should fall back to loading all contacts
+      const results = await failingDiscoveryTools.findContact({
+        email: 'alice@example.com',
+      });
+
+      // Should still find contact via fallback
+      assert.ok(results.length > 0);
     });
   });
 });
