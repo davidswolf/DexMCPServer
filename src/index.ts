@@ -19,7 +19,7 @@ import { ContactDiscoveryTools } from './tools/discovery.js';
 import { RelationshipHistoryTools } from './tools/history.js';
 import { ContactEnrichmentTools } from './tools/enrichment.js';
 import { FullTextSearchIndex } from './search/full-text-index.js';
-import pkg from '../package.json';
+import pkg from '../package.json' with { type: 'json' };
 
 // Initialize server
 const server = new Server(
