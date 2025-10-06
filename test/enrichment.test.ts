@@ -14,8 +14,8 @@ describe('Contact Enrichment Integration Tests', () => {
       baseURL: 'https://mock.api.test/api/rest',
       headers: {
         'x-hasura-dex-api-key': 'mock-api-key',
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     });
 
     // @ts-ignore
@@ -32,8 +32,8 @@ describe('Contact Enrichment Integration Tests', () => {
         contact_id: 'contact-001',
         updates: {
           job_title: 'Senior Software Engineer',
-          description: 'Updated description'
-        }
+          description: 'Updated description',
+        },
       });
 
       assert.equal(updated.job_title, 'Senior Software Engineer');
@@ -47,8 +47,8 @@ describe('Contact Enrichment Integration Tests', () => {
       const updated = await enrichmentTools.enrichContact({
         contact_id: 'contact-001',
         updates: {
-          website: 'https://newalice.dev'
-        }
+          website: 'https://newalice.dev',
+        },
       });
 
       assert.equal(updated.website, 'https://newalice.dev');
@@ -61,16 +61,13 @@ describe('Contact Enrichment Integration Tests', () => {
       const updated = await enrichmentTools.enrichContact({
         contact_id: 'contact-001',
         updates: {
-          emails: [
-            { email: 'alice@example.com' },
-            { email: 'alice.new@example.com' }
-          ]
-        }
+          emails: [{ email: 'alice@example.com' }, { email: 'alice.new@example.com' }],
+        },
       });
 
       assert.ok(updated.emails);
       assert.equal(updated.emails.length, 2);
-      assert.ok(updated.emails.some(e => e.email === 'alice.new@example.com'));
+      assert.ok(updated.emails.some((e) => e.email === 'alice.new@example.com'));
     });
 
     it('should update contact phone numbers', async () => {
@@ -79,9 +76,9 @@ describe('Contact Enrichment Integration Tests', () => {
         updates: {
           phones: [
             { phone_number: '5559876543', label: 'work' },
-            { phone_number: '5551111111', label: 'mobile' }
-          ]
-        }
+            { phone_number: '5551111111', label: 'mobile' },
+          ],
+        },
       });
 
       assert.ok(updated.phones);
@@ -93,12 +90,57 @@ describe('Contact Enrichment Integration Tests', () => {
         contact_id: 'contact-003',
         updates: {
           twitter: 'carol_new_handle',
-          instagram: 'carol_designs_pro'
-        }
+          instagram: 'carol_designs_pro',
+        },
       });
 
       assert.equal(updated.twitter, 'carol_new_handle');
       assert.equal(updated.instagram, 'carol_designs_pro');
+    });
+
+    it('should update social_profiles array', async () => {
+      const updated = await enrichmentTools.enrichContact({
+        contact_id: 'contact-001',
+        updates: {
+          social_profiles: ['https://github.com/alice', 'https://twitter.com/alice'],
+        },
+      });
+
+      assert.ok(updated.social_profiles);
+      assert.ok(Array.isArray(updated.social_profiles));
+      assert.equal(updated.social_profiles.length, 2);
+    });
+
+    it('should update tags array and deduplicate', async () => {
+      const updated = await enrichmentTools.enrichContact({
+        contact_id: 'contact-001',
+        updates: {
+          tags: ['engineer', 'senior', 'tech'],
+        },
+      });
+
+      assert.ok(updated.tags);
+      assert.ok(Array.isArray(updated.tags));
+      assert.ok(updated.tags.includes('engineer'));
+    });
+
+    it('should update simple fields like email, phone, company, title, notes', async () => {
+      const updated = await enrichmentTools.enrichContact({
+        contact_id: 'contact-001',
+        updates: {
+          email: 'newemail@example.com',
+          phone: '555-1234',
+          company: 'New Company Inc',
+          title: 'VP of Engineering',
+          notes: 'Additional notes about Alice',
+        },
+      });
+
+      assert.equal(updated.email, 'newemail@example.com');
+      assert.equal(updated.phone, '555-1234');
+      assert.equal(updated.company, 'New Company Inc');
+      assert.equal(updated.title, 'VP of Engineering');
+      assert.equal(updated.notes, 'Additional notes about Alice');
     });
 
     it('should throw error for non-existent contact', async () => {
@@ -106,8 +148,8 @@ describe('Contact Enrichment Integration Tests', () => {
         await enrichmentTools.enrichContact({
           contact_id: 'nonexistent',
           updates: {
-            job_title: 'Some Title'
-          }
+            job_title: 'Some Title',
+          },
         });
         assert.fail('Should have thrown error');
       } catch (error: any) {
@@ -120,13 +162,13 @@ describe('Contact Enrichment Integration Tests', () => {
     it('should add a new note to a contact', async () => {
       const note = await enrichmentTools.addContactNote({
         contact_id: 'contact-001',
-        content: 'This is a test note about Alice.'
+        content: 'This is a test note about Alice.',
       });
 
       assert.ok(note.id);
       assert.equal(note.note, 'This is a test note about Alice.');
       assert.ok(note.event_time);
-      assert.ok(note.contacts.some(c => c.contact_id === 'contact-001'));
+      assert.ok(note.contacts.some((c) => c.contact_id === 'contact-001'));
     });
 
     it('should add note with custom date', async () => {
@@ -135,7 +177,7 @@ describe('Contact Enrichment Integration Tests', () => {
       const note = await enrichmentTools.addContactNote({
         contact_id: 'contact-002',
         content: 'Historical note',
-        date: customDate
+        date: customDate,
       });
 
       assert.equal(note.event_time, customDate);
@@ -144,7 +186,7 @@ describe('Contact Enrichment Integration Tests', () => {
     it('should add note with current date when not specified', async () => {
       const note = await enrichmentTools.addContactNote({
         contact_id: 'contact-003',
-        content: 'Note without specified date'
+        content: 'Note without specified date',
       });
 
       assert.ok(note.event_time);
@@ -159,7 +201,7 @@ describe('Contact Enrichment Integration Tests', () => {
     it('should add HTML formatted note', async () => {
       const note = await enrichmentTools.addContactNote({
         contact_id: 'contact-004',
-        content: '<p>This is <strong>formatted</strong> content.</p>'
+        content: '<p>This is <strong>formatted</strong> content.</p>',
       });
 
       assert.ok(note.note.includes('<strong>'));
@@ -168,7 +210,7 @@ describe('Contact Enrichment Integration Tests', () => {
     it('should handle plain text note', async () => {
       const note = await enrichmentTools.addContactNote({
         contact_id: 'contact-001',
-        content: 'Plain text note'
+        content: 'Plain text note',
       });
 
       assert.equal(note.note, 'Plain text note');
@@ -177,12 +219,12 @@ describe('Contact Enrichment Integration Tests', () => {
     it('should add multiple notes to same contact', async () => {
       const note1 = await enrichmentTools.addContactNote({
         contact_id: 'contact-001',
-        content: 'First note'
+        content: 'First note',
       });
 
       const note2 = await enrichmentTools.addContactNote({
         contact_id: 'contact-001',
-        content: 'Second note'
+        content: 'Second note',
       });
 
       assert.notEqual(note1.id, note2.id);
@@ -195,21 +237,21 @@ describe('Contact Enrichment Integration Tests', () => {
       const reminder = await enrichmentTools.createContactReminder({
         contact_id: 'contact-001',
         reminder_date: '2025-11-01',
-        note: 'Follow up about project'
+        note: 'Follow up about project',
       });
 
       assert.ok(reminder.id);
       assert.equal(reminder.body, 'Follow up about project');
       assert.equal(reminder.due_at_date, '2025-11-01');
       assert.equal(reminder.is_complete, false);
-      assert.ok(reminder.contact_ids.some(c => c.contact_id === 'contact-001'));
+      assert.ok(reminder.contact_ids.some((c) => c.contact_id === 'contact-001'));
     });
 
     it('should create reminder with default incomplete status', async () => {
       const reminder = await enrichmentTools.createContactReminder({
         contact_id: 'contact-002',
         reminder_date: '2025-11-15',
-        note: 'Check in'
+        note: 'Check in',
       });
 
       assert.equal(reminder.is_complete, false);
@@ -219,7 +261,7 @@ describe('Contact Enrichment Integration Tests', () => {
       const reminder = await enrichmentTools.createContactReminder({
         contact_id: 'contact-003',
         reminder_date: '2025-11-20',
-        note: 'Annual review'
+        note: 'Annual review',
       });
 
       assert.equal(reminder.due_at_time, null);
@@ -233,7 +275,7 @@ describe('Contact Enrichment Integration Tests', () => {
       const reminder = await enrichmentTools.createContactReminder({
         contact_id: 'contact-004',
         reminder_date: dateString,
-        note: 'Monthly check-in'
+        note: 'Monthly check-in',
       });
 
       assert.equal(reminder.due_at_date, dateString);
@@ -243,13 +285,13 @@ describe('Contact Enrichment Integration Tests', () => {
       const reminder1 = await enrichmentTools.createContactReminder({
         contact_id: 'contact-001',
         reminder_date: '2025-11-01',
-        note: 'First reminder'
+        note: 'First reminder',
       });
 
       const reminder2 = await enrichmentTools.createContactReminder({
         contact_id: 'contact-001',
         reminder_date: '2025-11-15',
-        note: 'Second reminder'
+        note: 'Second reminder',
       });
 
       assert.notEqual(reminder1.id, reminder2.id);
@@ -264,8 +306,8 @@ describe('Contact Enrichment Integration Tests', () => {
         contact_id: 'contact-001',
         updates: {
           job_title: 'Staff Software Engineer',
-          description: 'Promoted to Staff level'
-        }
+          description: 'Promoted to Staff level',
+        },
       });
 
       assert.equal(enriched.job_title, 'Staff Software Engineer');
@@ -273,7 +315,7 @@ describe('Contact Enrichment Integration Tests', () => {
       // 2. Add note about the promotion
       const note = await enrichmentTools.addContactNote({
         contact_id: 'contact-001',
-        content: 'Alice got promoted to Staff Engineer! Congratulations.'
+        content: 'Alice got promoted to Staff Engineer! Congratulations.',
       });
 
       assert.ok(note.id);
@@ -282,7 +324,7 @@ describe('Contact Enrichment Integration Tests', () => {
       const reminder = await enrichmentTools.createContactReminder({
         contact_id: 'contact-001',
         reminder_date: '2025-10-10',
-        note: 'Send congratulations gift for promotion'
+        note: 'Send congratulations gift for promotion',
       });
 
       assert.ok(reminder.id);
@@ -296,14 +338,14 @@ describe('Contact Enrichment Integration Tests', () => {
       await enrichmentTools.enrichContact({
         contact_id: 'contact-002',
         updates: {
-          website: 'https://bobsmith.pro'
-        }
+          website: 'https://bobsmith.pro',
+        },
       });
 
       // Add note
       await enrichmentTools.addContactNote({
         contact_id: 'contact-002',
-        content: 'Updated website information'
+        content: 'Updated website information',
       });
 
       // Verify original data preserved
