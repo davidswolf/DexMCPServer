@@ -1,0 +1,54 @@
+# Snyk (https://snyk.io) policy file
+
+# This file is used to configure Snyk's behavior for the Dex MCP Server project.
+# It defines vulnerability exceptions, patch strategies, and security policies.
+
+# IMPORTANT: This project handles PII (Personally Identifiable Information)
+# All security vulnerabilities should be taken seriously and patched promptly.
+
+# To use Snyk:
+# 1. Create a free account at https://snyk.io
+# 2. Run `npx snyk auth` to authenticate
+# 3. Run `npm run security` to scan for vulnerabilities
+# 4. For CI/CD, set SNYK_TOKEN secret in GitHub repository settings
+
+# Specifies for which language Snyk is used (npm for Node.js projects)
+language-settings:
+  javascript:
+    # Fail build on medium severity or higher
+    # Given that this app handles PII, we use strict thresholds
+    severity-threshold: medium
+    # Ignore dev dependencies for production deployments
+    # (uncomment if you want to skip devDependencies)
+    # ignore-dev-dependencies: true
+
+# Exclude certain paths from security scanning (they don't affect runtime)
+exclude:
+  # Development and build artifacts
+  - dist/
+  - dist-test/
+  - coverage/
+  - node_modules/
+
+  # Test files (not deployed to production)
+  - test/
+  - '**/*.test.ts'
+  - '**/*.spec.ts'
+
+  # Configuration and documentation
+  - '*.md'
+  - '*.json'
+
+# Vulnerability exceptions and ignores
+# Format:
+#   - '<vulnerability-id>':
+#       - '*':
+#           reason: 'Explanation of why this is acceptable'
+#           expires: 'YYYY-MM-DD'
+ignore: {}
+
+# Patches to apply (Snyk can auto-patch some vulnerabilities)
+patch: {}
+
+# Version of this policy file
+version: v1.25.0
