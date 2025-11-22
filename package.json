@@ -39,7 +39,7 @@
   "license": "ISC",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.18.2",
-    "axios": "^1.12.2",
+    "axios": "^1.13.1",
     "fuse.js": "^7.1.0"
   },
   "devDependencies": {
