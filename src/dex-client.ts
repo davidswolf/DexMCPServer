@@ -80,8 +80,12 @@ export class DexClient {
   }
 
   async getContact(contactId: string): Promise<DexContact> {
-    const response = await this.client.get<DexContact>(`/contacts/${contactId}`);
-    return response.data;
+    const response = await this.client.get<ContactsResponse>(`/contacts/${contactId}`);
+    const contacts = response.data.contacts || [];
+    if (contacts.length === 0) {
+      throw new Error(`Dex API error: 404 - {"error":"Contact not found"}`);
+    }
+    return contacts[0];
   }
 
   async searchContactByEmail(email: string): Promise<DexContact[]> {
@@ -93,13 +97,23 @@ export class DexClient {
   }
 
   async createContact(contact: Partial<DexContact>): Promise<DexContact> {
-    const response = await this.client.post<DexContact>('/contacts', contact);
-    return response.data;
+    interface InsertContactResponse {
+      insert_contacts_one: DexContact;
+    }
+    const response = await this.client.post<InsertContactResponse>('/contacts', {
+      contact,
+    });
+    return response.data.insert_contacts_one;
   }
 
   async updateContact(contactId: string, updates: Partial<DexContact>): Promise<DexContact> {
-    const response = await this.client.put<DexContact>(`/contacts/${contactId}`, updates);
-    return response.data;
+    interface UpdateContactResponse {
+      update_contacts_by_pk: DexContact;
+    }
+    const response = await this.client.put<UpdateContactResponse>(`/contacts/${contactId}`, {
+      changes: updates,
+    });
+    return response.data.update_contacts_by_pk;
   }
 
   async deleteContact(contactId: string): Promise<void> {
@@ -118,9 +132,11 @@ export class DexClient {
     }
   }
 
-  async getNote(noteId: string): Promise<DexNote> {
-    const response = await this.client.get<DexNote>(`/notes/${noteId}`);
-    return response.data;
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async getNote(_noteId: string): Promise<DexNote> {
+    // GET /notes/:id and GET /timeline_items/:id do not exist in the DEX API.
+    // Notes are only accessible via getNotes (list by contact).
+    throw new Error('Dex API does not support fetching a single note by ID');
   }
 
   async createNote(note: Partial<DexNote>): Promise<DexNote> {
@@ -156,12 +172,18 @@ export class DexClient {
   }
 
   async updateNote(noteId: string, updates: Partial<DexNote>): Promise<DexNote> {
-    const response = await this.client.put<DexNote>(`/notes/${noteId}`, updates);
-    return response.data;
+    interface UpdateTimelineItemResponse {
+      update_timeline_items_by_pk: DexNote;
+    }
+    const response = await this.client.put<UpdateTimelineItemResponse>(
+      `/timeline_items/${noteId}`,
+      { changes: updates }
+    );
+    return response.data.update_timeline_items_by_pk;
   }
 
   async deleteNote(noteId: string): Promise<void> {
-    await this.client.delete(`/notes/${noteId}`);
+    await this.client.delete(`/timeline_items/${noteId}`);
   }
 
   async getReminders(contactId?: string): Promise<DexReminder[]> {

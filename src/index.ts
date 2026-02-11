@@ -231,35 +231,25 @@ server.setRequestHandler(ListToolsRequestSchema, () => {
               type: 'string',
               description: 'The unique ID of the contact to enrich',
             },
-            email: {
-              type: 'string',
-              description: 'Email address to add or update',
-            },
-            phone: {
-              type: 'string',
-              description: 'Phone number to add or update',
-            },
-            social_profiles: {
-              type: 'array',
-              items: { type: 'string' },
-              description: 'Social media profile URLs to add (will be merged with existing)',
-            },
-            company: {
-              type: 'string',
-              description: 'Company name to update',
-            },
             title: {
               type: 'string',
-              description: 'Job title to update',
+              description: 'Job title to update (maps to job_title in DEX)',
             },
             notes: {
               type: 'string',
-              description: 'Additional context or notes',
+              description: 'Contact description (maps to description in DEX)',
             },
-            tags: {
-              type: 'array',
-              items: { type: 'string' },
-              description: 'Tags to add (will be merged with existing)',
+            website: {
+              type: 'string',
+              description: 'Website URL to update',
+            },
+            linkedin: {
+              type: 'string',
+              description: 'LinkedIn profile handle to update',
+            },
+            twitter: {
+              type: 'string',
+              description: 'Twitter handle to update',
             },
           },
           required: ['contact_id'],
@@ -470,13 +460,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const enrichArgs = args as {
           contact_id: string;
           updates?: Record<string, unknown>;
-          email?: string;
-          phone?: string;
-          social_profiles?: string[];
-          company?: string;
           title?: string;
           notes?: string;
-          tags?: string[];
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           [key: string]: any;
         };

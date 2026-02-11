@@ -57,34 +57,6 @@ describe('Contact Enrichment Integration Tests', () => {
       assert.equal(updated.job_title, original.job_title);
     });
 
-    it('should update contact emails', async () => {
-      const updated = await enrichmentTools.enrichContact({
-        contact_id: 'contact-001',
-        updates: {
-          emails: [{ email: 'alice@example.com' }, { email: 'alice.new@example.com' }],
-        },
-      });
-
-      assert.ok(updated.emails);
-      assert.equal(updated.emails.length, 2);
-      assert.ok(updated.emails.some((e) => e.email === 'alice.new@example.com'));
-    });
-
-    it('should update contact phone numbers', async () => {
-      const updated = await enrichmentTools.enrichContact({
-        contact_id: 'contact-002',
-        updates: {
-          phones: [
-            { phone_number: '5559876543', label: 'work' },
-            { phone_number: '5551111111', label: 'mobile' },
-          ],
-        },
-      });
-
-      assert.ok(updated.phones);
-      assert.equal(updated.phones.length, 2);
-    });
-
     it('should update social media profiles', async () => {
       const updated = await enrichmentTools.enrichContact({
         contact_id: 'contact-003',
@@ -98,49 +70,19 @@ describe('Contact Enrichment Integration Tests', () => {
       assert.equal(updated.instagram, 'carol_designs_pro');
     });
 
-    it('should update social_profiles array', async () => {
+    it('should update simple fields with correct API mapping', async () => {
       const updated = await enrichmentTools.enrichContact({
         contact_id: 'contact-001',
         updates: {
-          social_profiles: ['https://github.com/alice', 'https://twitter.com/alice'],
-        },
-      });
-
-      assert.ok(updated.social_profiles);
-      assert.ok(Array.isArray(updated.social_profiles));
-      assert.equal(updated.social_profiles.length, 2);
-    });
-
-    it('should update tags array and deduplicate', async () => {
-      const updated = await enrichmentTools.enrichContact({
-        contact_id: 'contact-001',
-        updates: {
-          tags: ['engineer', 'senior', 'tech'],
-        },
-      });
-
-      assert.ok(updated.tags);
-      assert.ok(Array.isArray(updated.tags));
-      assert.ok(updated.tags.includes('engineer'));
-    });
-
-    it('should update simple fields like email, phone, company, title, notes', async () => {
-      const updated = await enrichmentTools.enrichContact({
-        contact_id: 'contact-001',
-        updates: {
-          email: 'newemail@example.com',
-          phone: '555-1234',
-          company: 'New Company Inc',
           title: 'VP of Engineering',
           notes: 'Additional notes about Alice',
+          website: 'https://alice.dev',
         },
       });
 
-      assert.equal(updated.email, 'newemail@example.com');
-      assert.equal(updated.phone, '555-1234');
-      assert.equal(updated.company, 'New Company Inc');
-      assert.equal(updated.title, 'VP of Engineering');
-      assert.equal(updated.notes, 'Additional notes about Alice');
+      assert.equal(updated.job_title, 'VP of Engineering');
+      assert.equal(updated.description, 'Additional notes about Alice');
+      assert.equal(updated.website, 'https://alice.dev');
     });
 
     it('should throw error for non-existent contact', async () => {

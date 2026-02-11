@@ -115,12 +115,18 @@ describe('DexClient', () => {
         phones: [],
         contact_ids: [],
       };
-      mockAxiosInstance.get.mockResolvedValue({ data: mockContact });
+      mockAxiosInstance.get.mockResolvedValue({ data: { contacts: [mockContact] } });
 
       const result = await client.getContact('123');
 
       expect(mockAxiosInstance.get).toHaveBeenCalledWith('/contacts/123');
       expect(result).toEqual(mockContact);
+    });
+
+    it('should throw error when contact not found', async () => {
+      mockAxiosInstance.get.mockResolvedValue({ data: { contacts: [] } });
+
+      await expect(client.getContact('nonexistent')).rejects.toThrow('404');
     });
   });
 
@@ -170,11 +176,13 @@ describe('DexClient', () => {
         phones: [],
         contact_ids: [],
       } as DexContact;
-      mockAxiosInstance.post.mockResolvedValue({ data: createdContact });
+      mockAxiosInstance.post.mockResolvedValue({
+        data: { insert_contacts_one: createdContact },
+      });
 
       const result = await client.createContact(newContact);
 
-      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/contacts', newContact);
+      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/contacts', { contact: newContact });
       expect(result).toEqual(createdContact);
     });
   });
@@ -190,11 +198,13 @@ describe('DexClient', () => {
         phones: [],
         contact_ids: [],
       };
-      mockAxiosInstance.put.mockResolvedValue({ data: updatedContact });
+      mockAxiosInstance.put.mockResolvedValue({
+        data: { update_contacts_by_pk: updatedContact },
+      });
 
       const result = await client.updateContact('123', updates);
 
-      expect(mockAxiosInstance.put).toHaveBeenCalledWith('/contacts/123', updates);
+      expect(mockAxiosInstance.put).toHaveBeenCalledWith('/contacts/123', { changes: updates });
       expect(result).toEqual(updatedContact);
     });
   });
@@ -248,20 +258,10 @@ describe('DexClient', () => {
   });
 
   describe('getNote', () => {
-    it('should fetch a single note by ID', async () => {
-      const mockNote: DexNote = {
-        id: '123',
-        note: 'Test note',
-        event_time: '2024-01-01',
-        contacts: [],
-        source: 'manual',
-      };
-      mockAxiosInstance.get.mockResolvedValue({ data: mockNote });
-
-      const result = await client.getNote('123');
-
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/notes/123');
-      expect(result).toEqual(mockNote);
+    it('should throw error as endpoint does not exist', async () => {
+      await expect(client.getNote('123')).rejects.toThrow(
+        'Dex API does not support fetching a single note by ID'
+      );
     });
   });
 
@@ -333,11 +333,15 @@ describe('DexClient', () => {
         contacts: [],
         source: 'manual',
       };
-      mockAxiosInstance.put.mockResolvedValue({ data: updatedNote });
+      mockAxiosInstance.put.mockResolvedValue({
+        data: { update_timeline_items_by_pk: updatedNote },
+      });
 
       const result = await client.updateNote('123', updates);
 
-      expect(mockAxiosInstance.put).toHaveBeenCalledWith('/notes/123', updates);
+      expect(mockAxiosInstance.put).toHaveBeenCalledWith('/timeline_items/123', {
+        changes: updates,
+      });
       expect(result).toEqual(updatedNote);
     });
   });
@@ -348,7 +352,7 @@ describe('DexClient', () => {
 
       await client.deleteNote('123');
 
-      expect(mockAxiosInstance.delete).toHaveBeenCalledWith('/notes/123');
+      expect(mockAxiosInstance.delete).toHaveBeenCalledWith('/timeline_items/123');
     });
   });
 

@@ -49,9 +49,9 @@ export class MockAxiosClient {
           pagination: {
             total: mockContacts.length,
             limit,
-            offset
-          }
-        }
+            offset,
+          },
+        },
       };
     }
 
@@ -63,8 +63,8 @@ export class MockAxiosClient {
 
       return {
         data: {
-          search_contacts_by_exact_email: contact ? [contact] : []
-        }
+          search_contacts_by_exact_email: contact ? [contact] : [],
+        },
       };
     }
 
@@ -78,8 +78,8 @@ export class MockAxiosClient {
 
       return {
         data: {
-          timeline_items: items
-        }
+          timeline_items: items,
+        },
       };
     }
 
@@ -90,24 +90,24 @@ export class MockAxiosClient {
           reminders: mockReminders,
           total: {
             aggregate: {
-              count: mockReminders.length
-            }
-          }
-        }
+              count: mockReminders.length,
+            },
+          },
+        },
       };
     }
 
-    // GET /contacts/:id
+    // GET /contacts/:id — API returns { contacts: [...] }
     const contactMatch = url.match(/^\/contacts\/(.+)$/);
     if (contactMatch) {
       const contactId = contactMatch[1];
       const contact = mockContacts.find((c: any) => c.id === contactId);
 
       if (!contact) {
-        throw new Error(`Dex API error: 404 - {"error":"Contact not found"}`);
+        return { data: { contacts: [] } };
       }
 
-      return { data: contact };
+      return { data: { contacts: [contact] } };
     }
 
     throw new Error(`Mock GET not implemented for: ${url}`);
@@ -121,7 +121,7 @@ export class MockAxiosClient {
         id: `note-${noteIdCounter++}`,
         note: timeline_event.note,
         event_time: timeline_event.event_time,
-        contacts: timeline_event.timeline_items_contacts.data
+        contacts: timeline_event.timeline_items_contacts.data,
       };
 
       mockTimelineItems.push(newNote);
@@ -133,12 +133,14 @@ export class MockAxiosClient {
             timeline_items_contacts: newNote.contacts.map((c: any) => ({
               contact: {
                 id: c.contact_id,
-                first_name: mockContacts.find((mc: any) => mc.id === c.contact_id)?.first_name || 'Unknown',
-                last_name: mockContacts.find((mc: any) => mc.id === c.contact_id)?.last_name || 'Unknown'
-              }
-            }))
-          }
-        }
+                first_name:
+                  mockContacts.find((mc: any) => mc.id === c.contact_id)?.first_name || 'Unknown',
+                last_name:
+                  mockContacts.find((mc: any) => mc.id === c.contact_id)?.last_name || 'Unknown',
+              },
+            })),
+          },
+        },
       };
     }
 
@@ -151,30 +153,33 @@ export class MockAxiosClient {
         is_complete: reminder.is_complete || false,
         due_at_time: reminder.due_at_time || null,
         due_at_date: reminder.due_at_date,
-        contact_ids: reminder.reminders_contacts.data
+        contact_ids: reminder.reminders_contacts.data,
       };
 
       mockReminders.push(newReminder);
 
       return {
         data: {
-          insert_reminders_one: newReminder
-        }
+          insert_reminders_one: newReminder,
+        },
       };
     }
 
-    // POST /contacts (create contact)
+    // POST /contacts (create contact) — API expects { contact: {...} }
     if (url === '/contacts') {
+      const contactData = data.contact || data;
       const newContact = {
         id: `contact-${Date.now()}`,
-        ...data,
+        ...contactData,
+        emails: contactData.emails || [],
+        phones: contactData.phones || [],
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       };
 
       mockContacts.push(newContact);
 
-      return { data: newContact };
+      return { data: { insert_contacts_one: newContact } };
     }
 
     throw new Error(`Mock POST not implemented for: ${url}`);
@@ -202,8 +207,8 @@ export class MockAxiosClient {
 
       return {
         data: {
-          update_reminders_by_pk: reminder
-        }
+          update_reminders_by_pk: reminder,
+        },
       };
     }
 
@@ -217,13 +222,34 @@ export class MockAxiosClient {
         throw new Error(`Dex API error: 404 - {"error":"Contact not found"}`);
       }
 
+      // API expects { changes: {...} } wrapper
+      const changes = data.changes || data;
       mockContacts[contactIndex] = {
         ...mockContacts[contactIndex],
-        ...data,
-        updated_at: new Date().toISOString()
+        ...changes,
+        updated_at: new Date().toISOString(),
       };
 
-      return { data: mockContacts[contactIndex] };
+      return { data: { update_contacts_by_pk: mockContacts[contactIndex] } };
+    }
+
+    // PUT /timeline_items/:id (update note)
+    const timelineMatch = url.match(/^\/timeline_items\/(.+)$/);
+    if (timelineMatch) {
+      const noteId = timelineMatch[1];
+      const noteIndex = mockTimelineItems.findIndex((n: any) => n.id === noteId);
+
+      if (noteIndex === -1) {
+        throw new Error(`Dex API error: 404 - {"error":"Note not found"}`);
+      }
+
+      const changes = data.changes || data;
+      mockTimelineItems[noteIndex] = {
+        ...mockTimelineItems[noteIndex],
+        ...changes,
+      };
+
+      return { data: { update_timeline_items_by_pk: mockTimelineItems[noteIndex] } };
     }
 
     throw new Error(`Mock PUT not implemented for: ${url}`);
@@ -258,6 +284,20 @@ export class MockAxiosClient {
       return { data: null };
     }
 
+    // DELETE /timeline_items/:id
+    const timelineMatch = url.match(/^\/timeline_items\/(.+)$/);
+    if (timelineMatch) {
+      const noteId = timelineMatch[1];
+      const noteIndex = mockTimelineItems.findIndex((n: any) => n.id === noteId);
+
+      if (noteIndex === -1) {
+        throw new Error(`Dex API error: 404 - {"error":"Note not found"}`);
+      }
+
+      mockTimelineItems.splice(noteIndex, 1);
+      return { data: null };
+    }
+
     throw new Error(`Mock DELETE not implemented for: ${url}`);
   }
 }
@@ -277,8 +317,8 @@ export const createMockDexClient = () => {
     baseURL: 'https://mock.api.test/api/rest',
     headers: {
       'x-hasura-dex-api-key': 'mock-api-key',
-      'Content-Type': 'application/json'
-    }
+      'Content-Type': 'application/json',
+    },
   });
 
   // Inject mock client into DexClient
